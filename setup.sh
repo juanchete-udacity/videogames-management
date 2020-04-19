@@ -1,3 +1,3 @@
 FLASK_APP=app.py
 FLASK_ENV=development
-EXCITED=true
+VIDEOGAMES_PER_PAGE=10

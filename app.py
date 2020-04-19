@@ -14,20 +14,53 @@ setup_db(app)
 migrate = Migrate(app, db)
 CORS(app)
 
+
+'''
+Pagination
+'''
+VIDEOGAMES_PER_PAGE = int(os.environ['VIDEOGAMES_PER_PAGE'])
+
+
+def paginate_videogames(selection, request):
+    '''  
+    If  there is a page parameter in the request
+    we return an slice of the array 
+    '''
+    if VIDEOGAMES_PER_PAGE is None:
+      current_videogames = [videogame.format() for videogame in selection]
+  
+    page = request.args.get('page',type=int)
+    
+    if page is None:
+        current_videogames = [videogame.format() for videogame in selection]
+    else:
+        start = (page - 1) * VIDEOGAMES_PER_PAGE
+        end = start + VIDEOGAMES_PER_PAGE
+        videogames = [videogame.format() for videogame in selection]
+        current_videogames = videogames[start:end]
+
+    return current_videogames
+
+
+
 '''
 VideoGames API
 '''
 @app.route('/videogames', methods=['GET'])
 def get_videogames():
 
-    selection = Videogame.query.all()
-    videogames = [videogame.format() for videogame in selection]
+    selection = Videogame.query.order_by(Videogame.id).all()
+    videogames = paginate_videogames(selection,request)
+
+    if len(videogames) == 0:
+      abort(404)
 
     return jsonify({
         'success': True,
         'code': 200,
         'videogames': videogames,
-        'total_videogames': len(videogames)
+        'total_videogames': len(videogames),
+        'page': request.args.get('page') or False
     })
 
 
@@ -57,11 +90,12 @@ def create_videogame():
 @app.route('/videogames/<int:videogame_id>', methods=['GET'])
 def get_videogame(videogame_id):
 
-    videogame = Videogame.query.filter(Videogame.id==videogame_id).one_or_none()
+    videogame = Videogame.query.filter(
+        Videogame.id == videogame_id).one_or_none()
 
     if videogame is None:
-      abort(404)
-    
+        abort(404)
+
     return jsonify({
         'success': True,
         'code': 200,
@@ -72,43 +106,45 @@ def get_videogame(videogame_id):
 @app.route('/videogames/<int:videogame_id>', methods=['DELETE'])
 def delete_videogame(videogame_id):
 
-    videogame = Videogame.query.filter(Videogame.id==videogame_id).one_or_none()
+    videogame = Videogame.query.filter(
+        Videogame.id == videogame_id).one_or_none()
 
     if videogame is None:
-      abort(404)
+        abort(404)
 
     videogame.delete()
-    #TODO exception
+    # TODO exception
 
     return jsonify({
         'success': True,
         'code': 200,
         'deleted': videogame_id
     })
-    
 
 
 @app.route('/videogames/<int:videogame_id>', methods=['PATCH'])
 def update_videogame(videogame_id):
 
-    videogame = Videogame.query.filter(Videogame.id==videogame_id).one_or_none()
+    videogame = Videogame.query.filter(
+        Videogame.id == videogame_id).one_or_none()
 
     if videogame is None:
-      abort(404)
-    
+        abort(404)
+
     body = request.get_json()
+    
     name = body.get('name', None)
     description = body.get('description', None)
     studio_id = body.get('studio_id', None)
     category_id = body.get('category_id', None)
 
-    videogame.name =  name or videogame.name
-    videogame.description =  description or videogame.description
-    videogame.studio_id =  studio_id or videogame.studio_id
-    videogame.category_id =  category_id or videogame.category_id
+    videogame.name = name or videogame.name
+    videogame.description = description or videogame.description
+    videogame.studio_id = studio_id or videogame.studio_id
+    videogame.category_id = category_id or videogame.category_id
 
     videogame.update()
-    
+
     return jsonify({
         'success': True,
         'code': 200,
@@ -138,7 +174,6 @@ def create_category():
 
     body = request.get_json()
     name = body.get('name', None)
-    
 
     category = Category(
         name=name
@@ -155,11 +190,11 @@ def create_category():
 @app.route('/categories/<int:category_id>', methods=['GET'])
 def get_category(category_id):
 
-    category = Category.query.filter(Category.id==category_id).one_or_none()
+    category = Category.query.filter(Category.id == category_id).one_or_none()
 
     if category is None:
-      abort(404)
-    
+        abort(404)
+
     return jsonify({
         'success': True,
         'code': 200,
@@ -169,37 +204,36 @@ def get_category(category_id):
 
 @app.route('/categories/<int:category_id>/videogames', methods=['GET'])
 def get_videogames_from_category(category_id):
-    
-    category = Category.query.filter(Category.id==category_id).one_or_none()
-    
+
+    category = Category.query.filter(Category.id == category_id).one_or_none()
+
     if category is None:
-      abort(404)
+        abort(404)
     
-    selection = Videogame.query.filter(Videogame.category_id == category_id).all()
-    if len(selection) == 0:
-      videogames = []
-    else:
-      videogames = [videogame.format() for videogame in selection]
-       
+    videogames = paginate_videogames(category.videogames,request)
+    
+    if len(videogames) == 0:
+      abort(404)
+
     return jsonify({
         'success': True,
         'code': 200,
         'category': category.format(),
-        'videogames': videogames
+        'videogames': videogames,
+        'total_videogames': len(category.videogames)
     })
-    
 
 
 @app.route('/categories/<int:category_id>', methods=['DELETE'])
 def delete_category(category_id):
 
-    category = Category.query.filter(Category.id==category_id).one_or_none()
+    category = Category.query.filter(Category.id == category_id).one_or_none()
 
     if category is None:
-      abort(404)
+        abort(404)
 
     category.delete()
-    #TODO exception
+    # TODO exception
 
     return jsonify({
         'success': True,
@@ -210,24 +244,24 @@ def delete_category(category_id):
 
 @app.route('/categories/<int:category_id>', methods=['PATCH'])
 def update_category(category_id):
-    category = Category.query.filter(Category.id==category_id).one_or_none()
+    category = Category.query.filter(Category.id == category_id).one_or_none()
 
     if category is None:
-      abort(404)
-    
+        abort(404)
+
     body = request.get_json()
     name = body.get('name', None)
-    
-    category.name =  name or category.name
-    
+
+    category.name = name or category.name
+
     category.update()
-    
+
     return jsonify({
         'success': True,
         'code': 200,
         'updated': category.format()
     })
-    
+
 
 '''
 Studio API
@@ -269,11 +303,11 @@ def create_studio():
 @app.route('/studios/<int:studio_id>', methods=['GET'])
 def get_studio(studio_id):
 
-    studio = Studio.query.filter(Studio.id==studio_id).one_or_none()
+    studio = Studio.query.filter(Studio.id == studio_id).one_or_none()
 
     if studio is None:
-      abort(404)
-    
+        abort(404)
+
     return jsonify({
         'success': True,
         'code': 200,
@@ -283,37 +317,36 @@ def get_studio(studio_id):
 
 @app.route('/studios/<int:studio_id>/videogames', methods=['GET'])
 def get_videogames_from_studio(studio_id):
-    
-    studio = Studio.query.filter(Studio.id==studio_id).one_or_none()
-    
+
+    studio = Studio.query.filter(Studio.id == studio_id).one_or_none()
+
     if studio is None:
+        abort(404)
+
+    videogames = paginate_videogames(studio.videogames,request)
+
+    if len(videogames) == 0:
       abort(404)
-    
-    selection = Videogame.query.filter(Videogame.studio_id == studio_id).all()
-    if len(selection) == 0:
-      videogames = []
-    else:
-      videogames = [videogame.format() for videogame in selection]
-       
+
     return jsonify({
         'success': True,
         'code': 200,
         'studio': studio.format(),
-        'videogames': videogames
+        'videogames': videogames,
+        'total_videogames': len(studio.videogames)
     })
-    
 
 
 @app.route('/studios/<int:studio_id>', methods=['DELETE'])
 def delete_studio(studio_id):
 
-    studio = Studio.query.filter(Studio.id==studio_id).one_or_none()
+    studio = Studio.query.filter(Studio.id == studio_id).one_or_none()
 
     if studio is None:
-      abort(404)
+        abort(404)
 
     studio.delete()
-    #TODO exception
+    # TODO exception
 
     return jsonify({
         'success': True,
@@ -324,25 +357,24 @@ def delete_studio(studio_id):
 
 @app.route('/studios/<int:studio_id>', methods=['PATCH'])
 def update_studio(studio_id):
-    studio = Studio.query.filter(Studio.id==studio_id).one_or_none()
+    studio = Studio.query.filter(Studio.id == studio_id).one_or_none()
 
     if studio is None:
-      abort(404)
-    
+        abort(404)
+
     body = request.get_json()
     name = body.get('name', None)
     location = body.get('location', None)
-    studio.name =  name or studio.name
-    studio.location =  location or studio.location
-    
+    studio.name = name or studio.name
+    studio.location = location or studio.location
+
     studio.update()
-    
+
     return jsonify({
         'success': True,
         'code': 200,
         'updated': studio.format()
     })
-    
 
 
 '''
