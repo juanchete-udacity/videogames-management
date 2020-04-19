@@ -1,0 +1,831 @@
+{
+	"info": {
+		"_postman_id": "e38840d0-c154-44c1-ac82-ad78b47eadf7",
+		"name": "capstone-videogames-test",
+		"description": "Test collection for the Videogames API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "public",
+			"item": [
+				{
+					"name": "studios",
+					"item": [
+						{
+							"name": "/studios",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "05cea6f9-9af0-4e60-9aad-4c8faf37ef4c",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"value contains videogames array\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.videogames).to.be.an('array')",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/studios",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"studios"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/studios",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5050a5b9-2e15-474e-9981-0e61ec8d2ff1",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Dummy Studio\",\n    \"location\":\"Dummy Location\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/studios",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"studios"
+									]
+								},
+								"description": "Create a Dummy Studio"
+							},
+							"response": []
+						},
+						{
+							"name": "/studios for deletion",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5050a5b9-2e15-474e-9981-0e61ec8d2ff1",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Dummy Studio\",\n    \"location\":\"Dummy Location\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/studios",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"studios"
+									]
+								},
+								"description": "Create a Dummy Studio for deletion"
+							},
+							"response": []
+						},
+						{
+							"name": "/studios/1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "65a195fa-a734-44b7-a7e0-c629b32d1fbb",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/studios/1",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"studios",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/studios/1/videogames",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "65a195fa-a734-44b7-a7e0-c629b32d1fbb",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/studios/1/videogames",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"studios",
+										"1",
+										"videogames"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/studios/1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ec1488aa-b4d7-468a-89f5-03484009e69c",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"location\":\"Dummy Location Patched\",\n    \"name\":\"Dummy Name Patched\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/studios/1",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"studios",
+										"1"
+									]
+								},
+								"description": "Update a Studio"
+							},
+							"response": []
+						},
+						{
+							"name": "/studios/2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "0aea66ad-0a6e-4533-b192-a8b0af746c78",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/studios/2",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"studios",
+										"2"
+									]
+								},
+								"description": "Delete a Studio"
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "1bfdf876-437f-4755-a60c-cb67b1c6d398",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "68bc765a-1988-4fc3-9457-7148e2872db5",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "categories",
+					"item": [
+						{
+							"name": "/categories",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "05cea6f9-9af0-4e60-9aad-4c8faf37ef4c",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"value contains videogames array\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.videogames).to.be.an('array')",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/categories",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"categories"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/categories",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5050a5b9-2e15-474e-9981-0e61ec8d2ff1",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Dummy Category\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/categories",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"categories"
+									]
+								},
+								"description": "Create a Dummy videogame"
+							},
+							"response": []
+						},
+						{
+							"name": "/categories for Deletion",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5050a5b9-2e15-474e-9981-0e61ec8d2ff1",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Dummy Category\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/categories",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"categories"
+									]
+								},
+								"description": "Create a Dummy Category\n"
+							},
+							"response": []
+						},
+						{
+							"name": "/categories/1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "65a195fa-a734-44b7-a7e0-c629b32d1fbb",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/categories/1",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"categories",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/categories/1/videogames",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "65a195fa-a734-44b7-a7e0-c629b32d1fbb",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/categories/5/videogames",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"categories",
+										"5",
+										"videogames"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/category/1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ec1488aa-b4d7-468a-89f5-03484009e69c",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Motors\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/categories/1",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"categories",
+										"1"
+									]
+								},
+								"description": "Update a Category"
+							},
+							"response": []
+						},
+						{
+							"name": "/categories/2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "0aea66ad-0a6e-4533-b192-a8b0af746c78",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/categories/2",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"categories",
+										"2"
+									]
+								},
+								"description": "Delete a Category created for deletion"
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "videogames",
+					"item": [
+						{
+							"name": "/videogames",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "05cea6f9-9af0-4e60-9aad-4c8faf37ef4c",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"value contains videogames array\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.videogames).to.be.an('array')",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/videogames",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"videogames"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/videogames",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5050a5b9-2e15-474e-9981-0e61ec8d2ff1",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Dummy Videogame\",\n    \"description\": \"Dummy description\",\n    \"studio_id\": 1,\n    \"category_id\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/videogames",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"videogames"
+									]
+								},
+								"description": "Create a Dummy videogame"
+							},
+							"response": []
+						},
+						{
+							"name": "/videogames for Deletion",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5050a5b9-2e15-474e-9981-0e61ec8d2ff1",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Dummy Videogame\",\n    \"description\": \"Dummy description\",\n    \"studio_id\": 1,\n    \"category_id\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/videogames",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"videogames"
+									]
+								},
+								"description": "Create a Dummy videogame to delete "
+							},
+							"response": []
+						},
+						{
+							"name": "/videogames/1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "65a195fa-a734-44b7-a7e0-c629b32d1fbb",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/videogames/1",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"videogames",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/videogames/1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ec1488aa-b4d7-468a-89f5-03484009e69c",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Dummy Videogame\",\n    \"description\": \"Dummy description Updated sss\",\n    \"studio_id\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/videogames/1",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"videogames",
+										"1"
+									]
+								},
+								"description": "Update a videogame"
+							},
+							"response": []
+						},
+						{
+							"name": "/videogames/2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "0aea66ad-0a6e-4533-b192-a8b0af746c78",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/videogames/2",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"videogames",
+										"2"
+									]
+								},
+								"description": "Delete a Videogame"
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "fc871e59-eaa4-46e8-975b-87b750ad1804",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "e5766f23-c7f1-472b-ae34-825a91147815",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "a5cbc203-4fbb-4956-8c70-dd6f280ba224",
+			"key": "host",
+			"value": "localhost:5000",
+			"type": "string"
+		}
+	],
+	"protocolProfileBehavior": {}
+}
