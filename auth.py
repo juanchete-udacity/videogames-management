@@ -1,67 +1,74 @@
 import json
+import os
 from flask import request, _request_ctx_stack, abort
 from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
 
-AUTH0_DOMAIN = 'dev-juanchete.eu.auth0.com'
+AUTH0_DOMAIN = os.environ['AUTH0_DOMAIN']
 ALGORITHMS = ['RS256']
-API_AUDIENCE = 'videoGamesAPI'
+CLIENT_ID = os.environ['CLIENT_ID']
+API_AUDIENCE = os.environ['API_AUDIENCE']
+REDIRECT_URI = os.environ['REDIRECT_URI']
 
-## AuthError Exception
+# AuthError Exception
 '''
 AuthError Exception
 A standardized way to communicate auth failure modes
 '''
+
+
 class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
         self.status_code = status_code
 
 
-## Auth Header
+# Auth Header
 def get_token_auth_header():
-    #get header from request
-    auth_header = request.headers.get('authorization','None')
+    # get header from request
+    auth_header = request.headers.get('authorization', None)
+    print("Auth Header: ", auth_header)
     token = None
-    if not auth_header:
+    if auth_header is None:
         raise AuthError({
             'description': 'No Authorization header supplied',
-            'code':'UNAUTHORIZED'    
-        },401)
-    #split bearer from authorization
+            'code': 'UNAUTHORIZED'
+        }, 401)
+    # split bearer from authorization
     parts = auth_header.split()
-    #0 is the auth type(can be capitalized), 1 is the token
+    # 0 is the auth type(can be capitalized), 1 is the token
     if parts[0].lower() != 'bearer':
-        #auth not supported
+        # auth not supported
         raise AuthError({
             'description': 'Authorization method must be Bearer',
-            'code':'INVALID_AUTH_METHOD'    
-        },401)
-    if len(parts)>1 and None != parts[1]:
+            'code': 'INVALID_AUTH_METHOD'
+        }, 401)
+    if len(parts) > 1 and None != parts[1]:
         token = parts[1]
-    
+
     return token
-    
+
 
 def check_permissions(permission, payload):
-    #If payload does not include the claims/permissions, error
+    # If payload does not include the claims/permissions, error
     if 'permissions' not in payload:
         raise AuthError({
-            'code':'INVALID_CLAIMS',
-            'description':'Permissions are not included in the JWT token'
-            },400)
+            'code': 'INVALID_CLAIMS',
+            'description': 'Permissions are not included in the JWT token'
+        }, 400)
     if permission not in payload['permissions']:
-        #unathorized        
+        # unathorized
         raise AuthError({
-            'code':'FORBIDDEN',
+            'code': 'FORBIDDEN',
             'description': f'User does not have enough permissions to complete the operation. Required: ${permission}'
-            },403)
+        }, 403)
     return True
 
+
 def verify_decode_jwt(token):
-    
+
     jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
     unverified_header = jwt.get_unverified_header(token)
@@ -110,16 +117,17 @@ def verify_decode_jwt(token):
                 'description': 'Unable to parse authentication token.'
             }, 400)
     raise AuthError({
-                'code': 'INVALID_HEADER',
+        'code': 'INVALID_HEADER',
                 'description': 'Unable to find the appropriate key.'
-            }, 400)
+    }, 400)
+
 
 def requires_auth(permission=''):
     def requires_auth_decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
             token = get_token_auth_header()
-            try: 
+            try:
                 payload = verify_decode_jwt(token)
             except:
                 abort(401)
