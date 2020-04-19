@@ -33,7 +33,7 @@ def paginate_videogames(selection, request):
     return current_videogames
 
 
-def create_app(test_config=None):
+def create_app(test_mode=False):
 
     app = Flask(__name__)
     setup_db(app)
