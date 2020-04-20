@@ -33,7 +33,7 @@ def paginate_videogames(selection, request):
 def create_app(test_mode=False):
 
     app = Flask(__name__)
-    setup_db(app)
+    setup_db(app, test_mode=test_mode)
     Migrate(app, db)
     CORS(app)
 

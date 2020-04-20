@@ -30,7 +30,7 @@ class AuthError(Exception):
 def get_token_auth_header():
     # get header from request
     auth_header = request.headers.get('authorization', None)
-    print("Auth Header: ", auth_header)
+    #print("Auth Header: ", auth_header)
     token = None
     if auth_header is None:
         raise AuthError({
@@ -54,6 +54,7 @@ def get_token_auth_header():
 
 def check_permissions(permission, payload):
     # If payload does not include the claims/permissions, error
+
     if 'permissions' not in payload:
         raise AuthError({
             'code': 'INVALID_CLAIMS',
