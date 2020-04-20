@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, create_engine
+from sqlalchemy import Column
 from flask_sqlalchemy import SQLAlchemy
 
 import json
@@ -78,7 +78,7 @@ class Category(db.Model):
 
     def __init__(self, name):
         self.name = name
-        
+
     def format(self):
         return {
             'id': self.id,

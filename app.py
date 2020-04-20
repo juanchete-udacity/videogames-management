@@ -1,22 +1,19 @@
 import os
-from flask import Flask, request, abort, jsonify, render_template, redirect
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, request, abort, jsonify, \
+    render_template, redirect
+
 from flask_migrate import Migrate
 from flask_cors import CORS
-import json
 
 
-from auth import AuthError, requires_auth, AUTH0_DOMAIN, API_AUDIENCE, REDIRECT_URI, CLIENT_ID
+from auth import AuthError, requires_auth, AUTH0_DOMAIN,\
+     API_AUDIENCE, REDIRECT_URI, CLIENT_ID, REDIRECT_LOGIN
 from models import db, setup_db, Videogame, Studio, Category
 
 VIDEOGAMES_PER_PAGE = int(os.environ['VIDEOGAMES_PER_PAGE'])
 
 
 def paginate_videogames(selection, request):
-    '''  
-    If  there is a page parameter in the request
-    we return an slice of the array 
-    '''
     if VIDEOGAMES_PER_PAGE is None:
         current_videogames = [videogame.format() for videogame in selection]
 
@@ -37,7 +34,7 @@ def create_app(test_mode=False):
 
     app = Flask(__name__)
     setup_db(app)
-    migrate = Migrate(app, db)
+    Migrate(app, db)
     CORS(app)
 
     '''
@@ -399,7 +396,11 @@ def create_app(test_mode=False):
 
     @app.route('/login')
     def login():
-        login_url = f"https://{AUTH0_DOMAIN}/authorize?audience={API_AUDIENCE}&response_type=token&client_id=VpsuaVE5l6k5XnV0E2fd75aZHzVv676V&redirect_uri={REDIRECT_URI}"
+        login_url = f"https://{AUTH0_DOMAIN}/authorize?"\
+            f"audience={API_AUDIENCE}" \
+            "&response_type=token" \
+            "&client_id=VpsuaVE5l6k5XnV0E2fd75aZHzVv676V"\
+            f"&redirect_uri={REDIRECT_URI}"
         return render_template('login.html', login_url=login_url)
 
     @app.route('/login-results')
@@ -409,16 +410,16 @@ def create_app(test_mode=False):
     @app.route('/logout')
     def logout():
         #  user to logout endpoint
-        return redirect(f'https://{AUTH0_DOMAIN}/v2/logout?'+
-                        f'client_id={CLIENT_ID}&'+
-                        'returnTo='+REDIRECT_URI.replace('login-results','login'))
+        return redirect(f'https://{AUTH0_DOMAIN}/v2/logout?'
+                        f'client_id={CLIENT_ID}&'
+                        f'returnTo={REDIRECT_LOGIN}')
 
     '''
     Exceptions
     '''
 
     @app.errorhandler(422)
-    def unprocessable(error):
+    def error_unprocessable(error):
         return jsonify({
             "success": False,
             "error": 422,
@@ -426,7 +427,7 @@ def create_app(test_mode=False):
         }), 422
 
     @app.errorhandler(404)
-    def unprocessable(error):
+    def error_not_found(error):
         return jsonify({
             "success": False,
             "error": 404,
@@ -434,7 +435,7 @@ def create_app(test_mode=False):
         }), 404
 
     @app.errorhandler(401)
-    def unprocessable(error):
+    def error_unauthenticated(error):
         return jsonify({
             "success": False,
             "error": 401,
@@ -442,7 +443,7 @@ def create_app(test_mode=False):
         }), 401
 
     @app.errorhandler(403)
-    def unprocessable(error):
+    def error_forbidden(error):
         return jsonify({
             "success": False,
             "error": 403,
@@ -450,7 +451,7 @@ def create_app(test_mode=False):
         }), 403
 
     @app.errorhandler(AuthError)
-    def authorizationerror(error):
+    def error_authorization(error):
 
         return jsonify({
             "success": False,

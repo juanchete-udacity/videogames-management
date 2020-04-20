@@ -1,6 +1,6 @@
 import json
 import os
-from flask import request, _request_ctx_stack, abort
+from flask import request, abort
 from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
@@ -11,6 +11,7 @@ ALGORITHMS = ['RS256']
 CLIENT_ID = os.environ['CLIENT_ID']
 API_AUDIENCE = os.environ['API_AUDIENCE']
 REDIRECT_URI = os.environ['REDIRECT_URI']
+REDIRECT_LOGIN = os.environ['REDIRECT_LOGIN']
 
 # AuthError Exception
 '''
@@ -45,7 +46,7 @@ def get_token_auth_header():
             'description': 'Authorization method must be Bearer',
             'code': 'INVALID_AUTH_METHOD'
         }, 401)
-    if len(parts) > 1 and None != parts[1]:
+    if len(parts) > 1 and parts[1] is not None:
         token = parts[1]
 
     return token
@@ -62,7 +63,8 @@ def check_permissions(permission, payload):
         # unathorized
         raise AuthError({
             'code': 'FORBIDDEN',
-            'description': f'User does not have enough permissions to complete the operation. Required: ${permission}'
+            'description': 'User does not have enough permissions to '
+                           f'complete the operation. Required: ${permission}'
         }, 403)
     return True
 
@@ -109,7 +111,8 @@ def verify_decode_jwt(token):
         except jwt.JWTClaimsError:
             raise AuthError({
                 'code': 'INVALID_CLAIMS',
-                'description': 'Incorrect claims. Please, check the audience and issuer.'
+                'description': 'Incorrect claims. Please, check the audience'
+                               ' and issuer.'
             }, 401)
         except Exception:
             raise AuthError({
@@ -129,7 +132,7 @@ def requires_auth(permission=''):
             token = get_token_auth_header()
             try:
                 payload = verify_decode_jwt(token)
-            except:
+            except Exception:
                 abort(401)
             check_permissions(permission, payload)
             return f(payload, *args, **kwargs)
