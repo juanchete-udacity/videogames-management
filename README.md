@@ -194,6 +194,7 @@ The API will return different error types when a request fails:
 401: Needs Auth
 403: Forbidden (you need more permissions)
 404: Resource Not Found
+412: Precondition Failed. Studio or Manager supplied could not exists
 422: Not Processable
 500: Internal Server Error
 

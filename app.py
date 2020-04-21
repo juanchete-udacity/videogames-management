@@ -7,8 +7,9 @@ from flask_cors import CORS
 
 
 from auth import AuthError, requires_auth, AUTH0_DOMAIN,\
-     API_AUDIENCE, REDIRECT_URI, CLIENT_ID, REDIRECT_LOGIN
+    API_AUDIENCE, REDIRECT_URI, CLIENT_ID, REDIRECT_LOGIN
 from models import db, setup_db, Videogame, Studio, Category
+from sqlalchemy import exc
 
 VIDEOGAMES_PER_PAGE = int(os.environ['VIDEOGAMES_PER_PAGE'])
 
@@ -76,20 +77,38 @@ def create_app(test_mode=False):
         description = body.get('description', None)
         studio_id = body.get('studio_id', None)
         category_id = body.get('category_id', None)
+        # We need to check if Studio and Category exists, or
+        # raise an error
+        try:
+            studio = Studio.query.filter(Studio.id == studio_id).one_or_none()
+            category = Category.query.filter(
+                Category.id == category_id).one_or_none()
 
-        videogame = Videogame(
-            name=name,
-            description=description,
-            studio_id=studio_id,
-            category_id=category_id
-        )
-        videogame.insert()
+            if studio is None or category is None:
+                abort(412)
 
-        return jsonify({
-            'success': True,
-            'code': 200,
-            'created': videogame.format()
-        })
+        except exc.SQLAlchemyError as sql_err:
+            print(sql_err)
+            abort(422)
+
+        # Now we create the videogame
+        try:
+            videogame = Videogame(
+                name=name,
+                description=description,
+                studio_id=studio_id,
+                category_id=category_id
+            )
+            videogame.insert()
+
+            return jsonify({
+                'success': True,
+                'code': 200,
+                'created': videogame.format()
+            })
+        except exc.SQLAlchemyError as sql_err:
+            print(sql_err)
+            abort(422)
 
     @app.route('/videogames/<int:videogame_id>', methods=['GET'])
     @requires_auth('get:videogames')
@@ -116,15 +135,17 @@ def create_app(test_mode=False):
 
         if videogame is None:
             abort(404)
+        try:
+            videogame.delete()
+            return jsonify({
+                'success': True,
+                'code': 200,
+                'deleted': videogame_id
+            })
 
-        videogame.delete()
-        # TODO exception
-
-        return jsonify({
-            'success': True,
-            'code': 200,
-            'deleted': videogame_id
-        })
+        except exc.SQLAlchemyError as sql_err:
+            print(sql_err)
+            abort(422)
 
     @app.route('/videogames/<int:videogame_id>', methods=['PATCH'])
     @requires_auth('patch:videogames')
@@ -138,23 +159,29 @@ def create_app(test_mode=False):
 
         body = request.get_json()
 
-        name = body.get('name', None)
-        description = body.get('description', None)
-        studio_id = body.get('studio_id', None)
-        category_id = body.get('category_id', None)
+        try:
 
-        videogame.name = name or videogame.name
-        videogame.description = description or videogame.description
-        videogame.studio_id = studio_id or videogame.studio_id
-        videogame.category_id = category_id or videogame.category_id
+            name = body.get('name', None)
+            description = body.get('description', None)
+            studio_id = body.get('studio_id', None)
+            category_id = body.get('category_id', None)
 
-        videogame.update()
+            videogame.name = name or videogame.name
+            videogame.description = description or videogame.description
+            videogame.studio_id = studio_id or videogame.studio_id
+            videogame.category_id = category_id or videogame.category_id
 
-        return jsonify({
-            'success': True,
-            'code': 200,
-            'updated': videogame.format()
-        })
+            videogame.update()
+
+            return jsonify({
+                'success': True,
+                'code': 200,
+                'updated': videogame.format()
+            })
+
+        except exc.SQLAlchemyError as sql_err:
+            print(sql_err)
+            abort(422)
 
     '''
     Categories
@@ -179,17 +206,21 @@ def create_app(test_mode=False):
 
         body = request.get_json()
         name = body.get('name', None)
+        try:
+            category = Category(
+                name=name
+            )
+            category.insert()
 
-        category = Category(
-            name=name
-        )
-        category.insert()
+            return jsonify({
+                'success': True,
+                'code': 200,
+                'created': category.format()
+            })
 
-        return jsonify({
-            'success': True,
-            'code': 200,
-            'created': category.format()
-        })
+        except exc.SQLAlchemyError as sql_err:
+            print(sql_err)
+            abort(422)
 
     @app.route('/categories/<int:category_id>', methods=['GET'])
     @requires_auth('get:categories')
@@ -240,14 +271,18 @@ def create_app(test_mode=False):
         if category is None:
             abort(404)
 
-        category.delete()
-        # TODO exception
+        try:
+            category.delete()
 
-        return jsonify({
-            'success': True,
-            'code': 200,
-            'deleted': category_id
-        })
+            return jsonify({
+                'success': True,
+                'code': 200,
+                'deleted': category_id
+            })
+
+        except exc.SQLAlchemyError as sql_err:
+            print(sql_err)
+            abort(422)
 
     @app.route('/categories/<int:category_id>', methods=['PATCH'])
     @requires_auth('patch:categories')
@@ -258,18 +293,23 @@ def create_app(test_mode=False):
         if category is None:
             abort(404)
 
-        body = request.get_json()
-        name = body.get('name', None)
+        try:
+            body = request.get_json()
+            name = body.get('name', None)
 
-        category.name = name or category.name
+            category.name = name or category.name
 
-        category.update()
+            category.update()
 
-        return jsonify({
-            'success': True,
-            'code': 200,
-            'updated': category.format()
-        })
+            return jsonify({
+                'success': True,
+                'code': 200,
+                'updated': category.format()
+            })
+
+        except exc.SQLAlchemyError as sql_err:
+            print(sql_err)
+            abort(422)
 
     '''
     Studio API
@@ -295,18 +335,21 @@ def create_app(test_mode=False):
         body = request.get_json()
         name = body.get('name', None)
         location = body.get('location', None)
+        try:
+            studio = Studio(
+                name=name,
+                location=location
+            )
+            studio.insert()
 
-        studio = Studio(
-            name=name,
-            location=location
-        )
-        studio.insert()
-
-        return jsonify({
-            'success': True,
-            'code': 200,
-            'created': studio.format()
-        })
+            return jsonify({
+                'success': True,
+                'code': 200,
+                'created': studio.format()
+            })
+        except exc.SQLAlchemyError as sql_err:
+            print(sql_err)
+            abort(422)
 
     @app.route('/studios/<int:studio_id>', methods=['GET'])
     @requires_auth('get:studios')
@@ -353,15 +396,16 @@ def create_app(test_mode=False):
 
         if studio is None:
             abort(404)
-
-        studio.delete()
-        # TODO exception
-
-        return jsonify({
-            'success': True,
-            'code': 200,
-            'deleted': studio_id
-        })
+        try:
+            studio.delete()
+            return jsonify({
+                'success': True,
+                'code': 200,
+                'deleted': studio_id
+            })
+        except exc.SQLAlchemyError as sql_err:
+            print(sql_err)
+            abort(422)
 
     @app.route('/studios/<int:studio_id>', methods=['PATCH'])
     @requires_auth('patch:studios')
@@ -374,16 +418,20 @@ def create_app(test_mode=False):
         body = request.get_json()
         name = body.get('name', None)
         location = body.get('location', None)
-        studio.name = name or studio.name
-        studio.location = location or studio.location
+        try:
+            studio.name = name or studio.name
+            studio.location = location or studio.location
 
-        studio.update()
+            studio.update()
 
-        return jsonify({
-            'success': True,
-            'code': 200,
-            'updated': studio.format()
-        })
+            return jsonify({
+                'success': True,
+                'code': 200,
+                'updated': studio.format()
+            })
+        except exc.SQLAlchemyError as sql_err:
+            print(sql_err)
+            abort(422)
 
     '''
     Healthy check route
@@ -423,7 +471,7 @@ def create_app(test_mode=False):
         return jsonify({
             "success": False,
             "error": 422,
-            "message": "unprocessable"
+            "message": "Unprocessable"
         }), 422
 
     @app.errorhandler(404)
@@ -450,6 +498,13 @@ def create_app(test_mode=False):
             "message": "Forbidden. Not enough permissions"
         }), 403
 
+    @app.errorhandler(412)
+    def precondition_fail(error):
+        return jsonify({
+            "success": False,
+            "error": 412,
+            "message": "Precondition Failed. Studio or Manager supplied could not exists"
+        }), 412
     @app.errorhandler(AuthError)
     def error_authorization(error):
 
