@@ -2,6 +2,11 @@
 
 The videogames API provides you with information about Videogames, The Studios that created them, and it lets you list them by Category or by the Studio. It is the Capstone project of the Full Stack Nanodegree from Udacity.
 
+There is a DEMO deployed on HEROKU (as part of the requirements on)
+
+https://videogames-juanchete-udacity.herokuapp.com/
+
+
 ## Getting Started
 
 In order to run it locally (development), you will need:
@@ -104,6 +109,15 @@ http://127.0.0.1:5000/login
 It will redirect you to the Auth0 Login page. After register or login, it redirects you to the login-details page. In this page you can copy the JWT generated for the user that has logged in.
 
 If you want to logout, just click on logout and you will be out of the application.
+
+### Postman collection for testing
+
+In the `tests` folder you have two files:
+
+* `capstone-videogames-test.HEROKU.postman_collection.json` - To test the API deployed on Heroku
+* `capstone-videogames-test.LOCAL.postman_collection.json` - to test the API in local
+
+Feel free to import it before the tokens expires!
 
 ## API Reference
 
