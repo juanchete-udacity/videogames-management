@@ -62,10 +62,12 @@ This will install all of the required packages we selected within the `requireme
 
 ## Database Setup
 
-With Postgres running, create a database called videogames, and put some data using the `videogames_data.psql` file provided.
+With Postgres running, create a database called videogames, run the API to create the tables and relations, and after, put some data using the `videogames_data.psql` file provided.
 From the root folder in terminal run:
+
 ```bash
 sudo -u postgres createdb videogames
+. setup.sh
 psql videogames < videogames_data.psql
 ```
 
