@@ -53,7 +53,7 @@ This will install all of the required packages we selected within the `requireme
 
 - [SQLAlchemy](https://www.sqlalchemy.org/) is the Python SQL toolkit and ORM we'll use to communicate with the Database 
 
-- [Flask-CORS](https://flask-cors.readthedocs.io/en/latest/#) is the extension we'll use to handle cross origin requests from our frontend server. 
+- [Flask-CORS](https://flask-cors.readthedocs.io/en/latest/#) is the extension we'll use to handle cross origin requests from the frontend server that you will develop if you really want to :) 
 
 ## Database Setup
 
@@ -82,19 +82,7 @@ To use it:
 
 ## Testing
 
-We need the TOKENS for the different roles in our `setup.sh` so first,  we enter our Virtual Env, and import the setup.sh contents.
-
-**ONLY FOR TESTING, you must disable this functionality when it evolves to a production system ;)**
-
-You can simulate the Login process to register and obtain an access_token in the url:
-
-http://127.0.0.1:5000/login
-
-It will redirect you to the Auth0 Login page. After register or login, it redirects you to the login-details page. In this page you can copy the JWT generated for the user that has logged in.
-
-If you want to logout, just click on logout and you will be out of the application
-
-Now, update `setup.sh` with the tokens obtained for each of the roles. 
+We need the TOKENS for the different roles in our `setup.sh` so first, we enter into our Virtual Env, and import the setup.sh contents.
 
 ```bash
 source env/bin/activate
@@ -104,6 +92,18 @@ psql videogames_test < videogames_test_data.sql
 python test_api.py
 ```
 **Note:** The tokens supplied will expire, hurry up before it occurrs or yours test will fail with 403 errors ;)
+
+### Login Testing to obtain tokens
+
+**ONLY FOR TESTING, you must disable this functionality when it evolves to a production system ;)**
+
+You can simulate the Login process to register and obtain an access_token in the url:
+
+http://127.0.0.1:5000/login
+
+It will redirect you to the Auth0 Login page. After register or login, it redirects you to the login-details page. In this page you can copy the JWT generated for the user that has logged in.
+
+If you want to logout, just click on logout and you will be out of the application.
 
 ## API Reference
 
@@ -197,6 +197,8 @@ The API will return different error types when a request fails:
 422: Not Processable
 500: Internal Server Error
 
+### Videogames
+
 **GET '/videogames'**
 
 - Fetches a dictionary of videogames with their category, description, name and studio. Both Studio and Category for each Videogame are returned
@@ -216,7 +218,7 @@ The API will return different error types when a request fails:
   "code": 200, 
   "page": false,
   "success": true,
-  "total_videogames": 1
+  "total_videogames": 1,
   "videogames": {
       "category": {
         "id": 1, 
@@ -283,7 +285,7 @@ The API will return different error types when a request fails:
   - A Boolean if `success`
   - A return `code`
   - The videogame object `created` with its information or an error
-- Sample: `curl -X POST -H "Authorization: Bearer $TOKEN_ROLE_USER" -H 'Content-Type: application/json' -d '{"name": "New Videogame","description": "New description","studio_id": 1,"category_id": 1}' http://127.0.0.1:5000/videogames`
+- Sample: `curl -X POST -H "Authorization: Bearer $TOKEN_ROLE_STUDIO" -H 'Content-Type: application/json' -d '{"name": "New Videogame","description": "New description","studio_id": 1,"category_id": 1}' http://127.0.0.1:5000/videogames`
 ```json
 {
     "code": 200,
@@ -320,7 +322,7 @@ The API will return different error types when a request fails:
   - A Boolean if `success`
   - A return `code`
   - The `updated` object
-- Sample: `curl -X PATCH -H "Authorization: Bearer $TOKEN_ROLE_USER" -H 'Content-Type: application/json' -d '{"name": "Updated Videogame Name","description": New description, but updated"}' http://127.0.0.1:5000/videogames/<videogame_id>`
+- Sample: `curl -X PATCH -H "Authorization: Bearer $TOKEN_ROLE_STUDIO" -H 'Content-Type: application/json' -d '{"name": "Updated Videogame Name","description": New description, but updated"}' http://127.0.0.1:5000/videogames/<videogame_id>`
 
 ```json
 {
@@ -367,6 +369,7 @@ The API will return different error types when a request fails:
     "success": true
 }
 ```
+### Categories
 
 **GET '/categories'**
 
@@ -548,6 +551,8 @@ The API will return different error types when a request fails:
     "success": true
 }
 ```
+
+### Studios
 
 **GET '/studios'**
 
