@@ -503,8 +503,9 @@ def create_app(test_mode=False):
         return jsonify({
             "success": False,
             "error": 412,
-            "message": "Precondition Failed. Studio or Manager supplied could not exists"
+            "message": "Precondition Failed"
         }), 412
+
     @app.errorhandler(AuthError)
     def error_authorization(error):
 
