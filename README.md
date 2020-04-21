@@ -82,7 +82,20 @@ To use it:
 
 ## Testing
 
-We need the TOKENS for the different roles in our `setup.sh` so first,  we enter our Virtual Env, and import the setup.sh contents
+We need the TOKENS for the different roles in our `setup.sh` so first,  we enter our Virtual Env, and import the setup.sh contents.
+
+**ONLY FOR TESTING, you must disable this functionality when it evolves to a production system ;)**
+
+You can simulate the Login process to register and obtain an access_token in the url:
+
+http://127.0.0.1:5000/login
+
+It will redirect you to the Auth0 Login page. After register or login, it redirects you to the login-details page. In this page you can copy the JWT generated for the user that has logged in.
+
+If you want to logout, just click on logout and you will be out of the application
+
+Now, update `setup.sh` with the tokens obtained for each of the roles. 
+
 ```bash
 source env/bin/activate
 . setup.sh
@@ -111,15 +124,45 @@ An user that is not authenticated, can request / and /videogames only
 
 #### User
 
-An authenticated user, who can request videogames, categories, studios and videogames by category or studio
+An authenticated user, who can request videogames, categories, studios and videogames by category or studio with the following permissions:
+```
+get:categories
+get:studios
+get:videogames
+```
 
 #### Studio
 
-An authenticated user of an Videogame Studio who can create, read, update and delete videogames, and modify info of a Studio
+An authenticated user of an Videogame Studio who can create, read, update and delete videogames, and modify info of a Studio. It has the following permissions in Auth0
+
+``` 
+delete:videogames
+get:categories
+get:studios
+get:videogames
+patch:studios
+patch:videogames
+post:videogames
+``` 
 
 #### Manager
 
-An authenticated user with super cow powers. He/She can do everything in this API
+An authenticated user with super cow powers. He/She can do everything in this API. The role Manager has the following permissions:
+``` 
+get:videogames
+post:videogames
+patch:videogames
+delete:videogames
+get:categories
+post:categories
+patch:categories
+delete:categories
+get:studios
+post:studios
+patch:studios
+delete:studios
+
+``` 
 
 ### Error Handling
 
@@ -157,12 +200,15 @@ The API will return different error types when a request fails:
 **GET '/videogames'**
 
 - Fetches a dictionary of videogames with their category, description, name and studio. Both Studio and Category for each Videogame are returned
-- Request Arguments: if supplied `page=page_number` will paginate results 
+- Request Arguments: if supplied `page=page_number` will paginate results
+- Authentication: not required
+- Role required: none
+
 - Returns:
-  - A Boolean if success
-  - A return code
-  - A page with the current page or `false` if no pagination was supplied on the request
-  - A dictionary of videogames with their values
+  - A Boolean if `success`
+  - A return `code`
+  - A page with the current `page` or `false` if no pagination was supplied on the request
+  - A dictionary of `videogames` with their values
   - A number with the total of videogames
 - Sample: `curl http://127.0.0.1:5000/videogames`
 ```json
@@ -188,158 +234,496 @@ The API will return different error types when a request fails:
 }
 ```
 
-**GET '/questions'**
-- Fetches a list of paginated questions, with their ids, answer, category and difficulty.
-- Request Arguments: *page*, with the number of pagination (established in the `QUESTIONS_PER_PAGE` variable in __init__.py)
+**GET '/videogames/<videogame_id>'**
+
+- Fetches a videogames with their category, description, name and studio. 
+- Request Arguments: without arguments
+- Authentication: not required
+- Role required: none
 - Returns:
-  - A Dictionary of categories, with ids and texts
-  - An integer with the current category
-  - The list of questions
-  - The total amount of questions 
-- Sample: `curl http://127.0.0.1:5000/questions?page=1`
+  - A Boolean if `success`
+  - A return `code`
+  - A `videogame` object with its information or 404 if no videogame with the id supplied
+- Sample: `curl -H "Authorization: Bearer $TOKEN_ROLE_USER" http://127.0.0.1:5000/videogames/<videogame_id>`
 ```json
 {
+  "code": 200, 
   "success": true,
-  "categories": {
-    "1": "Science", 
-    "2": "Art", 
-    "3": "Geography", 
-    "4": "History", 
-    "5": "Entertainment", 
-    "6": "Sports"
-  }, 
-  "current_category": "ALL", 
-  "questions": [
-    {
-      "answer": "Apollo 13", 
-      "category": 5, 
-      "difficulty": 4, 
-      "id": 2, 
-      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+  "videogame": {
+      "category": {
+        "id": 1, 
+        "name": "Motors"
+      }, 
+      "description": "Dummy description", 
+      "id": 6, 
+      "name": "Dummy Videogame", 
+      "studio": {
+        "id": 1, 
+        "location": "Dummy Location Patched", 
+        "name": "Dummy Name Patched"
+      }
+  },
+}
+```
+**POST '/videogames'**
+
+- Create a new videogames from a supplied studio and category
+- Request Arguments: JSON body with the mandatory fields
+- Authentication: Requires Auth
+- Role required: Studio or Manager
+```json
+{
+    "name": "New Videogame",
+    "description": "New description",
+    "studio_id": 1,
+    "category_id": 1
+}
+```
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - The videogame object `created` with its information or an error
+- Sample: `curl -X POST -H "Authorization: Bearer $TOKEN_ROLE_USER" -H 'Content-Type: application/json' -d '{"name": "New Videogame","description": "New description","studio_id": 1,"category_id": 1}' http://127.0.0.1:5000/videogames`
+```json
+{
+    "code": 200,
+    "created": {
+        "category": {
+            "id": 1,
+            "name": "Motors"
+        },
+        "description": "New description",
+        "id": 9,
+        "name": "New Videogame",
+        "studio": {
+            "id": 1,
+            "location": "Studio Location",
+            "name": "Studio Name"
+        }
+    },
+    "success": true
+}
+```
+**PATCH '/videogames/<videogame_id>'**
+
+- Updates value of a videogame
+- Request Arguments: JSON body with the values to change, videogame_id in the request path
+- Authentication: Requires Auth
+- Role required: Studio or Manager
+```json
+{
+    "name": "Updated Videogame Name",
+    "description": "New description, but updated"
+}
+```
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - The `updated` object
+- Sample: `curl -X PATCH -H "Authorization: Bearer $TOKEN_ROLE_USER" -H 'Content-Type: application/json' -d '{"name": "Updated Videogame Name","description": New description, but updated"}' http://127.0.0.1:5000/videogames/<videogame_id>`
+
+```json
+{
+    "code": 200,
+    "success": true,
+    "updated": {
+        "category": {
+            "id": 1,
+            "name": "Motors"
+        },
+        "description": "New description, but updated",
+        "id": 1,
+        "name": "Updated Videogame Name",
+        "studio": {
+            "id": 1,
+            "location": "Studio Location",
+            "name": "Studio Name"
+        }
     }
-  ],
-  "total_questions": 19
+}
 ```
 
-**DELETE /questions/{question_id}**
-Deletes the question of the given ID if it exists. Returns the id of the deleted question, success value, total questions, and question list based on current page number to update the frontend.
+**DELETE '/videogames/<videogame_id>'**
 
-- Request Arguments: None, question_id is given in the path. *page* if given from the list view for pagination
-- Returns: the id of the deleted question, the questions array, the number of questions remaining and the status  
-- Sample: `curl -X DELETE http://127.0.0.1:5000/questions/1?page=2`
+- Deletes a videogame
+- Request Arguments: videogame_id
+- Authentication: Requires Auth
+- Role required: Studio or Manager
 ```json
-
 {
-    "questions": [
+    "name": "Updated Videogame Name",
+    "description": "New description, but updated"
+}
+```
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - A `deleted` key with de id of the deleted videogame
+- Sample: `curl -X DELETE -H "Authorization: Bearer $TOKEN_ROLE_MANAGER" http://127.0.0.1:5000/videogames/<videogame_id>`
+```json
+{
+    "code": 200,
+    "deleted": 8,
+    "success": true
+}
+```
+
+**GET '/categories'**
+
+- Fetches a dictionary of categories. with id and name
+- Request Arguments: None
+- Authentication: Requires Auth
+- Role required: User, Studio or Manager
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - A dictionary of `categories` with their values
+  - A number with the total of categories
+- Sample: `curl -H "Authorization: Bearer $TOKEN_ROLE_STUDIO" http://127.0.0.1:5000/categories`
+```json
+{
+    "categories": [
         {
-        "answer": "Apollo 13", 
-        "category": 5, 
-        "difficulty": 4, 
-        "id": 2, 
-        "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+            "id": 3,
+            "name": "Rpg"
+        },
+        {
+            "id": 4,
+            "name": "Shooter"
+        },
+        {
+            "id": 5,
+            "name": "Dummy Category"
+        },
+        {
+            "id": 6,
+            "name": "Dummy Category"
+        },
+        {
+            "id": 1,
+            "name": "Motors"
         }
     ],
-    "deleted": 16,
+    "code": 200,
     "success": true,
-    "total_questions": 15
+    "total_categories": 5
 }
 ```
 
-**POST /questions**
-Creates a new question with the body containing the fields of a question, or if search term was given, searches the question table for questions containing the term supplied
+**GET '/categories/<category_id>'**
 
-- Request Arguments: *body* with the following structure
-
-    ```json
-    {
-        "question": "Question text",
-        "answer": "Answer text",
-        "difficulty": 1,
-        "category": "4",
-        "searchTerm": "search term"
-    }
-    ```
-
+- Fetches a category
+- Request Arguments: ID of the category requested
+- Authentication: Requires Auth
+- Role required: User, Studio or Manager
 - Returns:
-  - A json with the status of success, the question created, a dictionary of all the questions and the number of total questions.
-  - Sample: `curl -X POST -H "Content-Type: application/json" http://127.0.0.1:5000/questions -d '{"question": "question text", "answer": "answer", "difficulty": "1", "category": "1"}'`
-    ```json
-    {
-        "success": true,
-        "created": {"the question created"},
-        "questions": "...",
-        "total_questions": 16
-    }
-    ```
-
-**GET {/categories/<category_id>/questions}**
-Retrieves the questions with the category id passed as part of the path
-
-- Request Arguments: *page* for pagination
-- Returns: the dictionary of categories, the current category type, a list of questions as the result of the query and the total number of questions for pagination
-- Sample: `curl http://127.0.0.1:5000/categories/1/questions?page=1`
+  - A Boolean if `success`
+  - A return `code`
+  - A `category` object with its information or 404 if no category with the id supplied
+- Sample: `curl -H "Authorization: Bearer $TOKEN_ROLE_STUDIO" http://127.0.0.1:5000/categories/<category_id>`
 ```json
-
 {
-  "categories": {
-    "1": "Science", 
-    "2": "Art", 
-    "3": "Geography", 
-    "4": "History", 
-    "5": "Entertainment", 
-    "6": "Sports"
-  }, 
-  "current_category": "Science", 
-  "questions": [
-    {
-      "answer": "The Liver", 
-      "category": 1, 
-      "difficulty": 4, 
-      "id": 20, 
-      "question": "What is the heaviest organ in the human body?"
+    "category": {
+        "id": 1,
+        "name": "Motors"
     },
-    {
-      "answer": "Alexander Fleming", 
-      "category": 1, 
-      "difficulty": 3, 
-      "id": 21, 
-      "question": "Who discovered penicillin?"
-    }, 
-    {
-      "answer": "Blood", 
-      "category": 1, 
-      "difficulty": 4, 
-      "id": 22, 
-      "question": "Hematology is a branch of medicine involving the study of what?"
-    }
-  ], 
-  "total_questions": 3,
-  "success": true,
+    "code": 200,
+    "success": true
 }
 ```
 
-**POST /quizzes**
+**GET '/categories/<category_id>/videogames'**
 
-Retrieves a random question from the pool of questions or from the selected category (if any)
+- Fetches the videogames of the passed category
+- Request Arguments: ID of the category, and optional a page param for pagination
+- Authentication: Requires Auth
+- Role required: User, Studio or Manager
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - The `category` supplied
+  - An array of `videogames`
+  - The number of videogames for the category selected (for pagination)
 
-- Required Arguments: *body* with the following content:
+- Sample: `curl -H "Authorization: Bearer $TOKEN_ROLE_STUDIO" http://127.0.0.1:5000/categories/<category_id>/videogames`
 
 ```json
-    {
-        "previous_questions": [1,2,3],
-        "quiz_category": {"type": "category type", "id": 1}
+{
+    "category": {
+        "id": 1,
+        "name": "Motors"
+    },
+    "code": 200,
+    "success": true,
+    "total_videogames": 5,
+    "videogames": [
+        {
+            "category": {
+                "id": 1,
+                "name": "Motors"
+            },
+            "description": "Dummy description",
+            "id": 6,
+            "name": "Dummy Videogame",
+            "studio": {
+                "id": 1,
+                "location": "Dummy Location Patched",
+                "name": "Dummy Name Patched"
+            }
+        }
+    ]
+}
+```
+
+**POST '/categories'**
+
+- Creates a new category 
+- Request Arguments: JSON body with the category fields (name)
+- Authentication: Requires Auth
+- Role required: Manager
+
+```json
+{
+    "name": "New Category",
+}
+```
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - The category object named `created` with its information or an error
+- Sample: `curl -X POST -H "Authorization: Bearer $TOKEN_ROLE_MANAGER" -H 'Content-Type: application/json' -d '{"name": "New Category"}' http://127.0.0.1:5000/categories`
+```json
+{
+    "code": 200,
+    "created": {
+        "id": 7,
+        "name": "New Category"
+    },
+    "success": true
+}
+```
+**PATCH '/categories/<category_id>'**
+
+- Updates value of a category
+- Request Arguments: JSON body with the values to change, category_id in the request path
+- Authentication: Requires Auth
+- Role required: Manager
+```json
+{
+    "name": "Updated Category Name",
+}
+```
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - The `updated` object
+- Sample: `curl -X PATCH -H "Authorization: Bearer $TOKEN_ROLE_USER" -H 'Content-Type: application/json' -d '{"name": "Updated Category Name"}' http://127.0.0.1:5000/categories/<category_id>`
+```json
+{
+    "code": 200,
+    "success": true,
+    "updated": {
+        "id": 7,
+        "name": "Motors"
     }
+}
 ```
 
-- Returns: A JSON with the status of success and the question that is going to be asked
+**DELETE '/categories/<category_id>'**
+
+- Deletes a Category
+- Request Arguments: category_id
+- Authentication: Requires Auth
+- Role required: Manager
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - A `deleted` key with the id of the deleted category
+- Sample: `curl -X DELETE -H "Authorization: Bearer $TOKEN_ROLE_MANAGER" http://127.0.0.1:5000/categories/<category_id>`
 
 ```json
-    {
-        "success": true,
-        "question": {"the question"},
-    }  
+{
+    "code": 200,
+    "deleted": 7,
+    "success": true
+}
 ```
-- Sample: `curl -X POST -H "Content-Type: application/json" http://127.0.0.1:5000/quizzes -d '{"previous_questions": [1,11,13],"quiz_category": {"type": "category type", "id": "1"}}'` 
+
+**GET '/studios'**
+
+- Fetches a dictionary of studios. 
+- Request Arguments: None
+- Authentication: Requires Auth
+- Role required: User, Studio or Manager
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - A dictionary of `studios` with their values
+  - A number with the total of studios
+- Sample: `curl -H "Authorization: Bearer $TOKEN_ROLE_STUDIO" http://127.0.0.1:5000/studios`
+```json
+{
+    "code": 200,
+    "studios": [
+        {
+            "id": 3,
+            "location": "Santa Monica",
+            "name": "Activision"
+        },
+        {
+            "id": 4,
+            "location": "Tokyo",
+            "name": "Square Enix"
+        }
+    ],
+    "success": true,
+    "total_studios": 2
+```
+
+**GET '/studios/<studio_id>'**
+
+- Fetches a studio
+- Request Arguments: ID of the studio requested
+- Authentication: Requires Auth
+- Role required: User, Studio or Manager
+- Returns:
+  - A Boolean if `success` 
+  - A return `code`
+  - A `studio` object with its information or 404 if no studio with the id supplied
+- Sample: `curl -H "Authorization: Bearer $TOKEN_ROLE_STUDIO" http://127.0.0.1:5000/studios/<studio_id>`
+```json
+{
+    "code": 200,
+    "studio": {
+        "id": 1,
+        "location": "Studio Location",
+        "name": "Studio Name"
+    },
+    "success": true
+}
+```
+
+**GET '/studios/<studio_id>/videogames'**
+
+- Fetches the videogames of the passed studio
+- Request Arguments: ID of the studio, and optional a page param for pagination
+- Authentication: Requires Auth
+- Role required: User, Studio or Manager
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - The `studio` supplied
+  - An array of `videogames`
+  - The number of videogames for the studio selected (for pagination)
+- Sample: `curl -H "Authorization: Bearer $TOKEN_ROLE_STUDIO" http://127.0.0.1:5000/studios/<studio_id>/videogames`
+
+```json
+{
+    "code": 200,
+    "studio": {
+        "id": 1,
+        "location": "Dummy Location Patched",
+        "name": "Dummy Name Patched"
+    },
+    "success": true,
+    "total_videogames": 13,
+    "videogames": [
+        {
+            "category": {
+                "id": 1,
+                "name": "Motors"
+            },
+            "description": "Dummy description",
+            "id": 6,
+            "name": "Dummy Videogame",
+            "studio": {
+                "id": 1,
+                "location": "Dummy Location Patched",
+                "name": "Dummy Name Patched"
+            }
+        }
+    ]
+}
+```
+
+**POST '/studios'**
+
+- Creates a new studio 
+- Request Arguments: JSON body with the studio fields (name)
+- Authentication: Requires Auth
+- Role required: Manager
+
+```json
+{
+    "name": "New Studio",
+    "location":"New Studio Location"
+}
+```
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - The studio object named `created` with its information or an error
+- Sample: `curl -X POST -H "Authorization: Bearer $TOKEN_ROLE_USER" -H 'Content-Type: application/json' -d '{"name": "New Studio","location":"New Studio Location"}' http://127.0.0.1:5000/studios`
+
+```json
+{
+    "code": 200,
+    "created": {
+        "id": 9,
+        "location": "New Studio Location",
+        "name": "New Studio"
+    },
+    "success": true
+}
+```
+**PATCH '/studios/<studio_id>'**
+
+- Updates value of a studio
+- Request Arguments: JSON body with the values to change, studio_id in the request path
+- Authentication: Requires Auth
+- Role required: Studio or Manager
+```json
+{
+    "name": "Updated Studio Name",
+}
+```
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - The `updated` object
+
+```json
+{
+    "code": 200,
+    "success": true,
+    "updated": {
+        "id": 7,
+        "name": "Updated Studio Name",
+        "location": "Not updated Location"
+    }
+}
+```
+
+**DELETE '/studios/<studio_id>'**
+
+- Deletes a Studio
+- Request Arguments: studio_id
+- Authentication: Requires Auth
+- Role required: Manager
+- Returns:
+  - A Boolean if `success`
+  - A return `code`
+  - A `deleted` key with the id of the deleted studio
+- Sample: `curl -X DELETE -H "Authorization: Bearer $TOKEN_ROLE_MANAGER" http://127.0.0.1:5000/studios/<studio_id>`
+
+```json
+{
+    "code": 200,
+    "deleted": 2,
+    "success": true
+}
+```
+
 ## Authors
 
 Juan José Rodríguez Buleo

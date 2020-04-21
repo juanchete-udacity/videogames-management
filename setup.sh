@@ -19,3 +19,4 @@ export TOKEN_ROLE_MANAGER='eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldhbVBQO
 
 #Application variable por pagination
 export VIDEOGAMES_PER_PAGE=5
+
